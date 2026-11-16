@@ -1,3 +1,4 @@
+
 *.log
 .DS_Store
 .env
@@ -17,7 +18,11 @@
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
-/public/storage
+
+/public/storage/*
+!/public/storage/products/
+!/public/storage/products/**
+
 /storage/*.key
 /storage/pail
 /vendor
