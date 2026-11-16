@@ -27,10 +27,16 @@ class CartController extends Controller
         $user = $request->user();
         $attributes = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
+            'variant_id' => ['sometimes', 'nullable', 'integer', 'exists:product_variants,id'],
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        return new CartResource($this->carts->addItem($user, $attributes['product_id'], $attributes['quantity']));
+        return new CartResource($this->carts->addItem(
+            $user,
+            $attributes['product_id'],
+            $attributes['quantity'],
+            $attributes['variant_id'] ?? null,
+        ));
     }
 
     public function updateItem(Request $request, int $item): CartResource

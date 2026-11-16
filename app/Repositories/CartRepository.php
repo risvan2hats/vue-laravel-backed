@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 
 class CartRepository
@@ -25,6 +26,17 @@ class CartRepository
         return $query->first();
     }
 
+    public function variant(Product $product, int $variantId, bool $lockForUpdate = false): ?ProductVariant
+    {
+        $query = $product->variants()->whereKey($variantId);
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
+
+        return $query->first();
+    }
+
     public function item(Cart $cart, int $itemId, bool $lockForUpdate = false): ?CartItem
     {
         $query = $cart->items()->whereKey($itemId);
@@ -36,9 +48,16 @@ class CartRepository
         return $query->first();
     }
 
-    public function itemForProduct(Cart $cart, int $productId, bool $lockForUpdate = false): ?CartItem
-    {
+    public function itemForSelection(
+        Cart $cart,
+        int $productId,
+        ?int $variantId,
+        bool $lockForUpdate = false,
+    ): ?CartItem {
         $query = $cart->items()->where('product_id', $productId);
+        $query = $variantId === null
+            ? $query->whereNull('variant_id')
+            : $query->where('variant_id', $variantId);
 
         if ($lockForUpdate) {
             $query->lockForUpdate();
@@ -66,6 +85,6 @@ class CartRepository
 
     public function withItems(Cart $cart): Cart
     {
-        return $cart->load(['items.product.category']);
+        return $cart->load(['items.product.category', 'items.variant']);
     }
 }

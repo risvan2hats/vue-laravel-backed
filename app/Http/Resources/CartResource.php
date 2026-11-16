@@ -24,6 +24,8 @@ class CartResource extends JsonResource
                 'id' => $item->id,
                 'product_id' => $item->product_id,
                 'product' => ProductResource::make($item->product),
+                'variant_id' => $item->variant_id,
+                'variant' => $item->variant_id === null ? null : ProductVariantResource::make($item->variant),
                 'quantity' => $item->quantity,
                 'unit_price' => $item->unit_price,
                 'line_total' => number_format(

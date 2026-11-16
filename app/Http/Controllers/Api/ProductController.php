@@ -21,11 +21,16 @@ class ProductController extends Controller
     {
         $filters = $request->validate([
             'search' => ['sometimes', 'string', 'max:100'],
+            'category' => ['sometimes', 'string', 'max:255', 'exists:categories,slug'],
             'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
             'min_price' => ['sometimes', 'numeric', 'min:0'],
             'max_price' => ['sometimes', 'numeric', 'min:0', 'gte:min_price'],
+            'in_stock' => ['sometimes', 'boolean'],
             'per_page' => ['sometimes', 'integer', 'between:1,100'],
-            'sort' => ['sometimes', Rule::in(['title', 'price', 'created_at'])],
+            'sort' => [
+                'sometimes',
+                Rule::in(['featured', 'price-asc', 'price-desc', 'discount', 'title', 'price', 'created_at']),
+            ],
             'direction' => ['sometimes', Rule::in(['asc', 'desc'])],
             'include_inactive' => ['sometimes', 'boolean'],
         ]);
@@ -40,7 +45,15 @@ class ProductController extends Controller
             abort(404);
         }
 
-        return new ProductResource($product->load('category'));
+        $product->load([
+            'category',
+            'variants' => fn ($query) => $query->when(
+                ! auth()->user()?->is_admin,
+                fn ($variantQuery) => $variantQuery->where('is_active', true),
+            ),
+        ]);
+
+        return new ProductResource($product);
     }
 
     public function store(Request $request): JsonResponse

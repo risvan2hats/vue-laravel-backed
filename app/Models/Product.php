@@ -43,4 +43,9 @@ class Product extends Model
     {
         return $this->hasMany(CartItem::class);
     }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
 }

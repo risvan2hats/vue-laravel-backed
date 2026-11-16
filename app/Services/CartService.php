@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Repositories\CartRepository;
 use Illuminate\Support\Facades\DB;
@@ -18,9 +20,9 @@ class CartService
         return $this->carts->withItems($this->carts->forUser($user));
     }
 
-    public function addItem(User $user, int $productId, int $quantity): Cart
+    public function addItem(User $user, int $productId, int $quantity, ?int $variantId = null): Cart
     {
-        return DB::transaction(function () use ($user, $productId, $quantity) {
+        return DB::transaction(function () use ($user, $productId, $quantity, $variantId) {
             $cart = $this->carts->forUser($user);
             $product = $this->carts->product($productId, true);
 
@@ -30,15 +32,32 @@ class CartService
                 ]);
             }
 
-            $item = $this->carts->itemForProduct($cart, $product->id, true);
+            $variant = $variantId === null
+                ? null
+                : $this->carts->variant($product, $variantId, true);
+
+            if ($variantId !== null && ($variant === null || ! $variant->is_active)) {
+                throw ValidationException::withMessages([
+                    'variant_id' => 'The selected variant is not available for this product.',
+                ]);
+            }
+
+            if ($variantId === null && $product->variants()->exists()) {
+                throw ValidationException::withMessages([
+                    'variant_id' => 'Select a variant for this product.',
+                ]);
+            }
+
+            $item = $this->carts->itemForSelection($cart, $product->id, $variant?->id, true);
             $newQuantity = ($item?->quantity ?? 0) + $quantity;
 
-            $this->assertAvailableQuantity($newQuantity, $product->stock);
+            $this->assertAvailableQuantity($newQuantity, $variant?->stock ?? $product->stock);
 
             $item ??= new CartItem([
                 'cart_id' => $cart->id,
                 'product_id' => $product->id,
-                'unit_price' => $product->selling_price ?? $product->price,
+                'variant_id' => $variant?->id,
+                'unit_price' => $this->unitPrice($product, $variant),
             ]);
             $item->quantity = $newQuantity;
             $this->carts->saveItem($item);
@@ -65,7 +84,23 @@ class CartService
                 ]);
             }
 
-            $this->assertAvailableQuantity($quantity, $product->stock);
+            $variant = $item->variant_id === null
+                ? null
+                : $this->carts->variant($product, $item->variant_id, true);
+
+            if ($item->variant_id !== null && ($variant === null || ! $variant->is_active)) {
+                throw ValidationException::withMessages([
+                    'quantity' => 'This product variant is no longer available.',
+                ]);
+            }
+
+            if ($item->variant_id === null && $product->variants()->exists()) {
+                throw ValidationException::withMessages([
+                    'quantity' => 'This product now requires a variant selection. Remove it and add a variant.',
+                ]);
+            }
+
+            $this->assertAvailableQuantity($quantity, $variant?->stock ?? $product->stock);
             $item->quantity = $quantity;
             $this->carts->saveItem($item);
 
@@ -102,5 +137,18 @@ class CartService
                 'quantity' => 'The requested quantity exceeds the available stock.',
             ]);
         }
+    }
+
+    private function unitPrice(Product $product, ?ProductVariant $variant): string
+    {
+        if ($variant?->selling_price !== null) {
+            return $variant->selling_price;
+        }
+
+        if ($variant?->price !== null) {
+            return $variant->price;
+        }
+
+        return $product->selling_price ?? $product->price;
     }
 }

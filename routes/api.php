@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductVariantController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -30,5 +31,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
         Route::apiResource('products', ProductController::class)->except(['index', 'show']);
+        Route::post('/products/{product}/variants', [ProductVariantController::class, 'store'])
+            ->name('products.variants.store');
+        Route::patch('/products/{product}/variants/{variant}', [ProductVariantController::class, 'update'])
+            ->name('products.variants.update');
+        Route::delete('/products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy'])
+            ->name('products.variants.destroy');
     });
 });
