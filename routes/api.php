@@ -13,7 +13,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         ->middleware('throttle:5,1')
         ->name('auth.login');
 
-    Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+    Route::apiResource('categories-abcd', CategoryController::class)->only(['index', 'show']);
     Route::apiResource('products', ProductController::class)->only(['index', 'show']);
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -29,7 +29,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     });
 
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-        Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
+        Route::apiResource('categories-abcd', CategoryController::class)->except(['index', 'show']);
         Route::apiResource('products', ProductController::class)->except(['index', 'show']);
         Route::post('/products/{product}/variants', [ProductVariantController::class, 'store'])
             ->name('products.variants.store');
