@@ -160,6 +160,13 @@ class ShoppingApiTest extends TestCase
         $this->assertDatabaseMissing('categories', ['name' => 'Unauthorized Category']);
     }
 
+    public function test_api_returns_a_login_message_with_401_for_unauthenticated_requests(): void
+    {
+        $this->getJson('/api/v1/cart')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Please login first.');
+    }
+
     public function test_selling_price_cannot_exceed_regular_price(): void
     {
         $token = $this->adminToken();
