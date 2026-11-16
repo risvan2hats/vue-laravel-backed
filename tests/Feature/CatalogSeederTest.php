@@ -36,7 +36,7 @@ class CatalogSeederTest extends TestCase
         $this->assertSame(25, $shirt->variants->sum('stock'));
         $this->assertSame('21.99', $shirt->variants->firstWhere('sku', 'SAMPLE-TSHIRT-WHITE-M')->selling_price);
 
-        $this->assertModelExists(User::query()->where('email', 'test@example.com')->firstOrFail());
+        $this->assertModelExists(User::query()->where('email', 'risvanas@2hatslogic.com')->firstOrFail());
         $this->assertModelExists(Category::query()->where('slug', 'home-living')->firstOrFail());
     }
 }
