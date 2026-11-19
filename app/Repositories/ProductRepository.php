@@ -19,6 +19,7 @@ class ProductRepository
         $products = Product::query()
             ->with([
                 'category',
+                'subCategory',
                 'variants' => fn ($query) => $query->when(
                     ! ($filters['include_inactive'] ?? false),
                     fn ($variantQuery) => $variantQuery->where('is_active', true),
@@ -36,6 +37,11 @@ class ProductRepository
                 fn ($categoryQuery) => $categoryQuery->where('slug', $category),
             ))
             ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
+            ->when($filters['sub_category'] ?? null, fn ($query, $subCategory) => $query->whereHas(
+                'subCategory',
+                fn ($subQuery) => $subQuery->where('slug', $subCategory),
+            ))
+            ->when($filters['sub_category_id'] ?? null, fn ($query, $subCategoryId) => $query->where('sub_category_id', $subCategoryId))
             ->when($filters['min_price'] ?? null, fn (Builder $query, $price) => $this->wherePrice($query, '>=', $price))
             ->when($filters['max_price'] ?? null, fn (Builder $query, $price) => $this->wherePrice($query, '<=', $price))
             ->when($filters['in_stock'] ?? false, fn (Builder $query) => $query->where(function (Builder $query) {
@@ -59,14 +65,14 @@ class ProductRepository
 
     public function create(array $attributes): Product
     {
-        return Product::create($attributes)->load(['category', 'variants']);
+        return Product::create($attributes)->load(['category', 'subCategory', 'variants']);
     }
 
     public function update(Product $product, array $attributes): Product
     {
         $product->update($attributes);
 
-        return $product->refresh()->load(['category', 'variants']);
+        return $product->refresh()->load(['category', 'subCategory', 'variants']);
     }
 
     public function delete(Product $product): void

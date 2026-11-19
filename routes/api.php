@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductVariantController;
+use App\Http\Controllers\Api\SubCategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -14,6 +15,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         ->name('auth.login');
 
     Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+    Route::apiResource('sub-categories', SubCategoryController::class)->only(['index', 'show']);
     Route::apiResource('products', ProductController::class)->only(['index', 'show']);
 
     Route::middleware('auth:sanctum')->group(function () {

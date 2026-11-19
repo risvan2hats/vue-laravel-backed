@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\SubCategory;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
@@ -15,6 +16,7 @@ class ProductSeeder extends Seeder
                 'slug' => 'hydrating-cleanser',
                 'title' => 'Hydrating Cleanser',
                 'category' => 'beauty',
+                'sub_category' => 'cleansers',
                 'description' => 'A gentle daily cleanser that leaves skin feeling refreshed.',
                 'price' => '1900.00',
                 'selling_price' => '1900.00',
@@ -24,6 +26,7 @@ class ProductSeeder extends Seeder
                 'slug' => 'storage-basket',
                 'title' => 'Storage Basket',
                 'category' => 'home-living',
+                'sub_category' => 'baskets',
                 'description' => 'A woven natural-fiber basket for everyday storage.',
                 'price' => '60.00',
                 'selling_price' => '40.00',
@@ -33,6 +36,7 @@ class ProductSeeder extends Seeder
                 'slug' => 'classic-scent',
                 'title' => 'Classic Scent',
                 'category' => 'fragrances',
+                'sub_category' => 'perfumes',
                 'description' => 'A timeless fragrance available in multiple bottle sizes.',
                 'price' => '630.00',
                 'selling_price' => '600.00',
@@ -107,15 +111,19 @@ class ProductSeeder extends Seeder
             $category = Category::query()
                 ->where('slug', $product['category'])
                 ->firstOrFail();
-            unset($product['category']);
+            $subCategory = SubCategory::query()
+                ->where('slug', $product['sub_category'])
+                ->first();
+            unset($product['category'], $product['sub_category']);
 
             Product::query()->updateOrCreate(
                 ['slug' => $product['slug']],
                 [
                     ...$product,
                     'category_id' => $category->id,
+                    'sub_category_id' => $subCategory ? $subCategory->id : null,
                     'is_active' => true,
-                ],
+                ]
             );
         }
     }

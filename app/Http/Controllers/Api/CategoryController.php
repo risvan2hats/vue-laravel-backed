@@ -32,7 +32,7 @@ class CategoryController extends Controller
             abort(404);
         }
 
-        return new CategoryResource($category->loadCount('products'));
+        return new CategoryResource($category->load('subCategories')->loadCount('products'));
     }
 
     public function store(Request $request): JsonResponse

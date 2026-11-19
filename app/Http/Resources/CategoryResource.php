@@ -22,6 +22,7 @@ class CategoryResource extends JsonResource
             'image_url' => $this->image ? Storage::disk('public')->url($this->image) : null,
             'is_active' => $this->is_active,
             'products_count' => $this->whenCounted('products'),
+            'sub_categories' => SubCategoryResource::collection($this->whenLoaded('subCategories')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

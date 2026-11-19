@@ -23,6 +23,8 @@ class ProductController extends Controller
             'search' => ['sometimes', 'string', 'max:100'],
             'category' => ['sometimes', 'string', 'max:255', 'exists:categories,slug'],
             'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
+            'sub_category' => ['sometimes', 'string', 'max:255', 'exists:sub_categories,slug'],
+            'sub_category_id' => ['sometimes', 'integer', 'exists:sub_categories,id'],
             'min_price' => ['sometimes', 'numeric', 'min:0'],
             'max_price' => ['sometimes', 'numeric', 'min:0', 'gte:min_price'],
             'in_stock' => ['sometimes', 'boolean'],
@@ -47,6 +49,7 @@ class ProductController extends Controller
 
         $product->load([
             'category',
+            'subCategory',
             'variants' => fn ($query) => $query->when(
                 ! auth()->user()?->is_admin,
                 fn ($variantQuery) => $variantQuery->where('is_active', true),
@@ -88,6 +91,7 @@ class ProductController extends Controller
         $required = $product === null ? ['required'] : ['sometimes', 'required'];
         $validator = Validator::make($request->all(), [
             'category_id' => [...$required, 'integer', 'exists:categories,id'],
+            'sub_category_id' => ['sometimes', 'nullable', 'integer', 'exists:sub_categories,id'],
             'title' => [...$required, 'string', 'max:200'],
             'description' => ['sometimes', 'nullable', 'string', 'max:10000'],
             'image' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
