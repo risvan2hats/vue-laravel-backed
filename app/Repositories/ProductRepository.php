@@ -105,7 +105,7 @@ class ProductRepository
 
     private function effectivePriceOrder(string $direction): string
     {
-        return "COALESCE((SELECT MIN(COALESCE(product_variants.selling_price, product_variants.price, products.selling_price, products.price)) FROM product_variants WHERE product_variants.product_id = products.id AND product_variants.is_active = 1), COALESCE(selling_price, price)) {$direction}";
+        return "COALESCE((SELECT MIN(COALESCE(product_variants.selling_price, product_variants.price, products.selling_price, products.price)) FROM product_variants WHERE product_variants.product_id = products.id AND product_variants.is_active = true), COALESCE(selling_price, price)) {$direction}";
     }
 
     private function discountOrder(): string
@@ -115,7 +115,7 @@ class ProductRepository
             .'THEN (COALESCE(product_variants.price, products.price) - product_variants.selling_price) * 1.0 / COALESCE(product_variants.price, products.price) '
             .'WHEN product_variants.price IS NULL AND products.selling_price IS NOT NULL AND products.selling_price < products.price '
             .'THEN (products.price - products.selling_price) * 1.0 / products.price ELSE 0 END) '
-            .'FROM product_variants WHERE product_variants.product_id = products.id AND product_variants.is_active = 1), '
+            .'FROM product_variants WHERE product_variants.product_id = products.id AND product_variants.is_active = true), '
             .'CASE WHEN selling_price IS NOT NULL AND selling_price < price THEN (price - selling_price) * 1.0 / price ELSE 0 END) DESC';
     }
 }
