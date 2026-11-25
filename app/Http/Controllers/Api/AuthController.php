@@ -71,6 +71,7 @@ class AuthController extends Controller
             'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'phone' => ['sometimes', 'nullable', 'string', 'max:30', Rule::unique('users', 'phone')->ignore($user)],
             'address' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'language' => ['sometimes', 'nullable', 'string', 'max:10'],
         ]);
 
         return new UserResource($this->users->update($user, $attributes));
